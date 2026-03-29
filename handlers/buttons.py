@@ -1,5 +1,7 @@
-from handlers.help_sections import basic, advanced, expert, pro
 from telebot import types
+from handlers.help_sections import basic, advanced, expert, pro
+from utils.db import get_groups
+from utils.helpers import is_admin
 
 def register(bot):
 
@@ -7,6 +9,8 @@ def register(bot):
     def callback_handler(call):
 
         bot.answer_callback_query(call.id)
+
+        # ================= HELP SECTIONS =================
 
         if call.data == "basic":
             basic.show(bot, call)
@@ -45,14 +49,97 @@ def register(bot):
                 reply_markup=markup
             )
 
+        # ================= SETTINGS SYSTEM =================
+
+        elif call.data == "settings":
+
+            groups = get_groups()
+
+            markup = types.InlineKeyboardMarkup()
+            found = False
+
+            for chat_id, info in groups.items():
+
+                if is_admin(bot, call.from_user.id, int(chat_id)):
+
+                    markup.add(
+                        types.InlineKeyboardButton(
+                            f"⚙️ {info['title']}",
+                            callback_data=f"manage_{chat_id}"
+                        )
+                    )
+                    found = True
+
+            text = """
+⚙️ <b>Manage Group Settings</b>
+
+👉🏻 Select the group whose settings you want to change.
+
+❗ If your group is not listed:
+• Send /reload in the group and try again  
+• Send /settings in the group and then press <b>Open in Pvt</b>
+"""
+
+            if not found:
+                bot.edit_message_text(
+                    text + "\n\n❌ No groups found where you are admin.",
+                    call.message.chat.id,
+                    call.message.message_id
+                )
+                return
+
+            bot.edit_message_text(
+                text,
+                call.message.chat.id,
+                call.message.message_id,
+                reply_markup=markup
+            )
+
+        elif call.data.startswith("manage_"):
+
+            chat_id = call.data.split("_")[1]
+
+            bot.edit_message_text(
+                f"""
+⚙️ <b>Managing Group</b>
+
+🆔 <code>{chat_id}</code>
+
+👉 Features coming next:
+• Welcome settings  
+• Anti-link  
+• Moderation  
+
+Stay tuned 🚀
+""",
+                call.message.chat.id,
+                call.message.message_id
+            )
+
+        # ================= PRO GUIDES =================
+
         elif call.data == "setup_staff":
-            bot.edit_message_text("⚙️ Staff setup guide (Coming soon)", call.message.chat.id, call.message.message_id)
+            bot.edit_message_text(
+                "⚙️ Staff setup guide (Coming soon)",
+                call.message.chat.id,
+                call.message.message_id
+            )
 
         elif call.data == "clone":
-            bot.edit_message_text("🤖 Clone guide (Coming soon)", call.message.chat.id, call.message.message_id)
+            bot.edit_message_text(
+                "🤖 Clone creation guide (Coming soon)",
+                call.message.chat.id,
+                call.message.message_id
+            )
 
         elif call.data == "roles":
-            bot.edit_message_text("👥 Roles guide (Coming soon)", call.message.chat.id, call.message.message_id)
+            bot.edit_message_text(
+                "👥 User roles guide (Coming soon)",
+                call.message.chat.id,
+                call.message.message_id
+            )
+
+        # ================= DEFAULT =================
 
         else:
             bot.edit_message_text(
