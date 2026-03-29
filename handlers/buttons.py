@@ -1,5 +1,6 @@
 from handlers.help_sections import basic
 from handlers.help_sections import advanced
+from handlers.help_sections import expert
 
 # inside callback_handler
 
@@ -8,6 +9,9 @@ elif call.data == "basic":
 
 elif call.data == "advanced":
     advanced.show(bot, call)
+
+elif call.data == "expert":
+    expert.show(bot, call)
 
 elif call.data == "back_help":
 
