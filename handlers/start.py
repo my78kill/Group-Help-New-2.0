@@ -5,14 +5,19 @@ def register(bot):
     @bot.message_handler(commands=['start'])
     def start_cmd(message):
 
+        bot_username = bot.get_me().username
+
         markup = types.InlineKeyboardMarkup(row_width=2)
 
         markup.add(
-            types.InlineKeyboardButton("➕ Add me to a Group ➕", url="https://t.me/YOUR_BOT_USERNAME?startgroup=true")
+            types.InlineKeyboardButton(
+                "➕ Add me to a Group ➕",
+                url=f"https://t.me/{bot_username}?startgroup=true"
+            )
         )
 
         markup.add(
-            types.InlineKeyboardButton("⚙️ Manage group Settings ✍️", callback_data="settings")
+            types.InlineKeyboardButton("⚙️ Manage Group Settings ✍️", callback_data="settings")
         )
 
         markup.add(
@@ -32,14 +37,14 @@ def register(bot):
         bot.send_message(
             message.chat.id,
             f"""
-👋 <b>Hello {message.from_user.first_name}!</b>
+✨ <b>Hey {message.from_user.first_name}!</b>
 
-🤖 <b>Welcome to My Group Help Bot</b>
+🤖 <b>I’m your smart Group Assistant</b>
 
-👉 Add me in your group and make me admin  
-👉 I will help you manage everything easily ⚡  
+🚀 Add me to your group & promote me as admin  
+🛡️ I’ll help you manage, protect & automate everything  
 
-❓ Press /help to see all commands
+⚡ Tap <b>/help</b> to explore all features
 """,
             reply_markup=markup
         )
