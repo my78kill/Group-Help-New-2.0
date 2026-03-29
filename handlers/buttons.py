@@ -6,7 +6,19 @@ def register(bot):
         bot.answer_callback_query(call.id)
 
         if call.data == "settings":
-            text = "⚙️ Group settings panel (Coming soon)"
+
+            text = """
+⚙️ <b>Group Settings Panel</b>
+
+📌 Choose the group you want to manage.
+
+❗ If your group is not listed:
+• Make sure I am added & admin  
+• Send /reload in your group  
+• Or type /settings in group & tap <b>Open in Private</b>
+
+🚀 Select a group below to continue
+"""
 
         elif call.data == "group":
             text = "👥 Group options (Coming soon)"
@@ -15,7 +27,7 @@ def register(bot):
             text = "📢 Channel options (Coming soon)"
 
         elif call.data == "support":
-            text = "🆘 Support system (Coming soon)"
+            text = "🆘 Support (Coming soon)"
 
         elif call.data == "info":
             text = "ℹ️ Bot info (Coming soon)"
@@ -24,10 +36,10 @@ def register(bot):
             text = "🌐 Language system (Coming soon)"
 
         elif call.data == "tutorial":
-            text = "👨‍🏫 Tutorial section (Coming soon)"
+            text = "👨‍🏫 Tutorial (Coming soon)"
 
         elif call.data == "basic":
-            text = "👨 Basic commands list (Coming soon)"
+            text = "👨 Basic commands (Coming soon)"
 
         elif call.data == "advanced":
             text = "🧑 Advanced commands (Coming soon)"
