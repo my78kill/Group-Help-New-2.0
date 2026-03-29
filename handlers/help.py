@@ -12,17 +12,17 @@ def register(bot):
         )
 
         markup.add(
-            types.InlineKeyboardButton("👨 Basic commands", callback_data="basic"),
+            types.InlineKeyboardButton("👨 Basic", callback_data="basic"),
             types.InlineKeyboardButton("🧑 Advanced", callback_data="advanced")
         )
 
         markup.add(
-            types.InlineKeyboardButton("🕵️ Experts", callback_data="expert"),
-            types.InlineKeyboardButton("👨‍💼 Pro Guides", callback_data="pro")
+            types.InlineKeyboardButton("🕵️ Expert", callback_data="expert"),
+            types.InlineKeyboardButton("👨‍💼 Pro", callback_data="pro")
         )
 
         bot.send_message(
             message.chat.id,
-            "📖 <b>Welcome to the help menu!</b>",
+            "📖 <b>Help Menu</b>\n\nChoose a category below:",
             reply_markup=markup
         )
