@@ -1,6 +1,7 @@
 from handlers.help_sections import basic
 from handlers.help_sections import advanced
 from handlers.help_sections import expert
+from handlers.help_sections import pro
 
 # inside callback_handler
 
@@ -12,6 +13,30 @@ elif call.data == "advanced":
 
 elif call.data == "expert":
     expert.show(bot, call)
+
+elif call.data == "pro":
+    pro.show(bot, call)
+
+elif call.data == "setup_staff":
+    bot.edit_message_text(
+        "⚙️ Staff setup guide (Coming soon)",
+        call.message.chat.id,
+        call.message.message_id
+    )
+
+elif call.data == "clone":
+    bot.edit_message_text(
+        "🤖 Clone creation guide (Coming soon)",
+        call.message.chat.id,
+        call.message.message_id
+    )
+
+elif call.data == "roles":
+    bot.edit_message_text(
+        "👥 User roles guide (Coming soon)",
+        call.message.chat.id,
+        call.message.message_id
+    )
 
 elif call.data == "back_help":
 
