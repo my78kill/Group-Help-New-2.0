@@ -8,7 +8,7 @@ def register(bot):
         chat_id = message.chat.id
         user_name = message.from_user.first_name
 
-        # ===== SAFE PAYLOAD CHECK =====
+        # ===== SAFE PAYLOAD =====
         payload = None
         if message.text:
             parts = message.text.split()
@@ -18,12 +18,11 @@ def register(bot):
         # ================= PRIVATE =================
         if message.chat.type == "private":
 
-            # 🔥 FIX: better payload check
-            if payload and payload.startswith("help"):
+            # 🔥 ONLY exact help payload
+            if payload == "help":
                 help.show_help_menu(bot, message)
                 return
 
-            # Normal private start
             bot_username = bot.get_me().username
 
             markup = types.InlineKeyboardMarkup(row_width=2)
@@ -33,10 +32,15 @@ def register(bot):
                     url=f"https://t.me/{bot_username}?startgroup=true"
                 )
             )
+
             markup.add(
                 types.InlineKeyboardButton(
                     "⚙️ Manage Group Settings ✍️",
                     callback_data="settings"
+                ),
+                types.InlineKeyboardButton(
+                    "👀 Bot Commands",
+                    url=f"https://t.me/{bot_username}?start=help"
                 )
             )
 
@@ -68,16 +72,19 @@ def register(bot):
     @bot.callback_query_handler(func=lambda call: call.data.startswith("start_"))
     def start_buttons_handler(call):
         bot.answer_callback_query(call.id)
+
         chat_id = call.message.chat.id
+        bot_username = bot.get_me().username
 
         if call.data == "start_commands":
+            # 🔥 ALWAYS redirect to private help
             bot.send_message(
                 chat_id,
                 "📘 <b>Commands Explanation</b>\n\nClick below to open help menu.",
                 reply_markup=types.InlineKeyboardMarkup().add(
                     types.InlineKeyboardButton(
                         "Open Help Menu 🔹",
-                        url=f"https://t.me/{bot.get_me().username}?start=help"
+                        url=f"https://t.me/{bot_username}?start=help"
                     )
                 )
             )
@@ -85,10 +92,17 @@ def register(bot):
         elif call.data == "start_settings":
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
-                types.InlineKeyboardButton("Open here", callback_data="settings_here"),
-                types.InlineKeyboardButton("Open in private chat", callback_data="settings_private")
+                types.InlineKeyboardButton(
+                    "Open here",
+                    callback_data="settings_here"
+                ),
+                types.InlineKeyboardButton(
+                    "Open in private chat",
+                    url=f"https://t.me/{bot_username}?start=settings"
+                )
             )
 
+            # 🔥 safe edit
             try:
                 bot.edit_message_text(
                     "Where do you want to open the settings menu?",
