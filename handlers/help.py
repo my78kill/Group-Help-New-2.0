@@ -27,7 +27,7 @@ def register(bot):
 
 
 def show_help_menu(bot, obj):
-    """Help menu (works for both message & callback)"""
+    """Help menu (message + callback safe)"""
 
     markup = types.InlineKeyboardMarkup(row_width=2)
 
@@ -47,8 +47,8 @@ def show_help_menu(bot, obj):
 
     text = "📖 <b>Help Menu</b>\n\nChoose a category below:"
 
-    # ===== FIXED LOGIC =====
-    if hasattr(obj, "message"):  # callback query
+    # ===== CALLBACK QUERY =====
+    if hasattr(obj, "message") and hasattr(obj, "id"):
         try:
             bot.edit_message_text(
                 text,
@@ -62,7 +62,9 @@ def show_help_menu(bot, obj):
                 text,
                 reply_markup=markup
             )
-    else:  # normal message
+
+    # ===== NORMAL MESSAGE =====
+    else:
         bot.send_message(
             obj.chat.id,
             text,
