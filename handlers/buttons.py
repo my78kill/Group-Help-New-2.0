@@ -1,5 +1,6 @@
 from telebot import types
 from handlers.help_sections import basic, advanced, expert, pro
+from handlers.settings import main as settings_main   # 👈 NEW
 from utils.db import get_groups
 from utils.helpers import is_admin
 
@@ -124,7 +125,6 @@ def register(bot):
             bot_username = bot.get_me().username
             group_name = call.message.chat.title
 
-            # edit group message
             markup = types.InlineKeyboardMarkup()
             markup.add(
                 types.InlineKeyboardButton(
@@ -135,7 +135,7 @@ def register(bot):
 
             safe_edit(call, "✅ Settings menu sent in private chat.", markup)
 
-            # send DM
+            # DM SEND
             try:
                 groups = get_groups()
                 markup_dm = types.InlineKeyboardMarkup()
@@ -165,29 +165,14 @@ Select one of the settings that you want to change.
                     bot.send_message(call.from_user.id, "❌ No groups found.")
 
             except:
-                bot.send_message(
-                    call.message.chat.id,
-                    "❌ Please start me in private first!"
-                )
+                bot.send_message(call.message.chat.id, "❌ Please start me in private first!")
 
+        # 👇🔥 IMPORTANT CHANGE (अब settings UI open होगा)
         elif call.data.startswith("manage_"):
             chat_id = call.data.split("_")[1]
+            group_name = call.message.chat.title
 
-            safe_edit(
-                call,
-                f"""
-⚙️ <b>Managing Group</b>
-
-🆔 <code>{chat_id}</code>
-
-👉 Features coming next:
-• Welcome settings  
-• Anti-link  
-• Moderation  
-
-Stay tuned 🚀
-"""
-            )
+            settings_main.show(bot, call, group_name)
 
         # ================= PRO =================
         elif call.data == "setup_staff":
@@ -224,7 +209,7 @@ Stay tuned 🚀
                 bot.send_message(
                     chat_id,
                     "Thank you for adding me to your group as an Administrator!\n"
-                    "Start me in private chat, so I can send you the error messages there, without obstructing this chat!",
+                    "Start me in private chat, so I can send you the error messages there.",
                     reply_markup=markup1
                 )
 
