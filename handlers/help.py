@@ -22,6 +22,7 @@ def register(bot):
             # Private chat → show full buttons menu
             show_help_menu(bot, message)
 
+
 def show_help_menu(bot, call_or_message):
     markup = types.InlineKeyboardMarkup(row_width=2)
     markup.add(
@@ -37,6 +38,7 @@ def show_help_menu(bot, call_or_message):
     )
 
     chat_id = call_or_message.chat.id
+    # Telegram callback message_id
     message_id = getattr(call_or_message, "message_id", None)
 
     if message_id:  # callback query
