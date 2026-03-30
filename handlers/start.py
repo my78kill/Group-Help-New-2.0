@@ -1,5 +1,7 @@
 from telebot import types
 from handlers import help
+from handlers.settings import main as settings_main
+from utils.db import get_groups
 
 def register(bot):
 
@@ -18,11 +20,26 @@ def register(bot):
         # ================= PRIVATE =================
         if message.chat.type == "private":
 
-            # 🔥 ONLY exact help payload
+            # ✅ HELP PAYLOAD
             if payload == "help":
                 help.show_help_menu(bot, message)
                 return
 
+            # ✅ SETTINGS PAYLOAD (🔥 MAIN FIX)
+            if payload and payload.startswith("settings_"):
+                group_id = payload.split("_")[1]
+
+                groups = get_groups()
+
+                try:
+                    group_name = groups[str(group_id)]["title"]
+                except:
+                    group_name = "Unknown Group"
+
+                settings_main.direct_open(bot, message, group_id, group_name)
+                return
+
+            # ===== NORMAL START =====
             bot_username = bot.get_me().username
 
             markup = types.InlineKeyboardMarkup(row_width=2)
@@ -76,8 +93,8 @@ def register(bot):
         chat_id = call.message.chat.id
         bot_username = bot.get_me().username
 
+        # ===== HELP BUTTON =====
         if call.data == "start_commands":
-            # 🔥 ALWAYS redirect to private help
             bot.send_message(
                 chat_id,
                 "📘 <b>Commands Explanation</b>\n\nClick below to open help menu.",
@@ -89,7 +106,11 @@ def register(bot):
                 )
             )
 
+        # ===== SETTINGS BUTTON =====
         elif call.data == "start_settings":
+
+            group_id = call.message.chat.id  # 🔥 IMPORTANT
+
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
                 types.InlineKeyboardButton(
@@ -98,11 +119,10 @@ def register(bot):
                 ),
                 types.InlineKeyboardButton(
                     "Open in private chat",
-                    url=f"https://t.me/{bot_username}?start=settings"
+                    url=f"https://t.me/{bot_username}?start=settings_{group_id}"
                 )
             )
 
-            # 🔥 safe edit
             try:
                 bot.edit_message_text(
                     "Where do you want to open the settings menu?",
