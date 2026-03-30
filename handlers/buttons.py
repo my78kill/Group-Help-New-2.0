@@ -63,7 +63,7 @@ def register(bot):
         chat_id = call.message.chat.id
         group_name = call.message.chat.title
 
-        # ================= OPEN =================
+        # ===== OPEN =====
         if call.data == "settings_here":
             settings_main.show(bot, call, chat_id, group_name)
 
@@ -84,8 +84,56 @@ def register(bot):
         elif call.data == "back_settings":
             settings_main.show(bot, call, chat_id, group_name)
 
+        # ================= DELETE MENU =================
+        elif call.data == "set_delete":
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(
+                types.InlineKeyboardButton("🤖 Commands", callback_data="del_commands"),
+                types.InlineKeyboardButton("💭 Service Messages", callback_data="del_service")
+            )
+            markup.add(
+                types.InlineKeyboardButton("🔥 Delete all messages", callback_data="del_all")
+            )
+            markup.add(
+                types.InlineKeyboardButton("🔙 Back", callback_data="back_settings")
+            )
+
+            text = """🗑 <b>Deleting Messages</b>
+
+What messages do you want the Bot to delete?"""
+            safe_edit(call, text, markup)
+
+        # ================= OTHER MENU =================
+        elif call.data == "set_other":
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(
+                types.InlineKeyboardButton("🔤 Banned words", callback_data="set_banned"),
+                types.InlineKeyboardButton("👥 Members management", callback_data="set_members")
+            )
+            markup.add(
+                types.InlineKeyboardButton("📏 Message length", callback_data="set_length"),
+                types.InlineKeyboardButton("🔍 Log channel", callback_data="set_log")
+            )
+            markup.add(
+                types.InlineKeyboardButton("🔏 Permission", callback_data="set_permission")
+            )
+            markup.add(
+                types.InlineKeyboardButton("🔙 Back", callback_data="back_settings"),
+                types.InlineKeyboardButton("❌ Close", callback_data="close_settings")
+            )
+
+            text = f"""⚙️ <b>SETTINGS</b>
+
+🏷 Group: <b>{group_name}</b>
+
+Select one of the settings that you want to change."""
+            safe_edit(call, text, markup)
+
         # ================= REGULATION =================
         elif call.data == "set_regulation":
+
             markup = types.InlineKeyboardMarkup(row_width=1)
             markup.add(
                 types.InlineKeyboardButton("✍️ Customize Messages", callback_data="set_reg_msg"),
@@ -102,14 +150,13 @@ To edit who can use the /rules command, go to the "Commands permissions" section
 
         # ================= ANTI-SPAM =================
         elif call.data == "set_antispam":
+
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
                 types.InlineKeyboardButton("📘 Telegram links", callback_data="set_spam_links"),
                 types.InlineKeyboardButton("📨 Forwarding", callback_data="set_spam_forward")
             )
-            markup.add(
-                types.InlineKeyboardButton("⛓️ Total links block", callback_data="set_spam_total")
-            )
+            markup.add(types.InlineKeyboardButton("⛓️ Total links block", callback_data="set_spam_total"))
             markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="back_settings"))
 
             text = """📨 <b>Anti-Spam</b>
