@@ -34,7 +34,7 @@ There are 2 ways to add/remove them:
     "role_moderator": """
 👷🏻‍♂️ <b>Moderator</b>
 ➕ They appear in the Staff list
-➕ They can use all moderation commands from the bot (ban, kick, unban, info, infopvt, mute, unmute)
+➕ They can use all moderation commands from the bot
 ➕ They are free users
 ➖ They cannot delete messages
 
@@ -51,9 +51,9 @@ Commands: /cleaner and /uncleaner
 """,
     "role_muter": """
 🙊 <b>Muter</b>
-➕ They can mute and unmute users with bot commands
+➕ They can mute and unmute users
 ➕ They are free users
-➖ They cannot ban/unban/kick users
+➖ They cannot ban/kick users
 ➖ They cannot delete messages
 
 Commands: /muter and /unmuter
@@ -68,11 +68,27 @@ Commands: /helper and /unhelper
 """,
     "role_free": """
 🔓 <b>Free</b>
-➕ The Bot ignores them for automatic punishment like antispam, antiflood, media block, global silence...
+➕ The Bot ignores them for automatic punishment
 
 Commands: /free and /unfree
 """
 }
+
+# ================= SAFE EDIT FUNCTION =================
+def safe_edit(bot, call, text, markup):
+    try:
+        bot.edit_message_text(
+            text,
+            call.message.chat.id,
+            call.message.message_id,
+            reply_markup=markup
+        )
+    except:
+        bot.send_message(
+            call.message.chat.id,
+            text,
+            reply_markup=markup
+        )
 
 # ================= PRO MAIN MENU =================
 def show(bot, call):
@@ -84,9 +100,7 @@ def show(bot, call):
         types.InlineKeyboardButton("👥 Users Roles", callback_data="roles"),
     )
 
-    markup.add(
-        types.InlineKeyboardButton("🔙 Back", callback_data="back_help")
-    )
+    markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="back_help"))
 
     text = """
 <b>Pro Guides</b>
@@ -97,19 +111,12 @@ In this menu you will find some guides for very advanced Group Help functions.
 and follow each step carefully.
 """
 
-    bot.edit_message_text(
-        text,
-        call.message.chat.id,
-        call.message.message_id,
-        reply_markup=markup
-    )
+    safe_edit(bot, call, text, markup)
 
 # ================= USERS ROLES MENU =================
 def roles_menu(bot, call):
-    """Users Roles button ka content aur buttons"""
     markup = types.InlineKeyboardMarkup(row_width=2)
 
-    # Role pairs
     markup.add(
         types.InlineKeyboardButton("Founder", callback_data="role_founder"),
         types.InlineKeyboardButton("Co-Founder", callback_data="role_cofounder")
@@ -127,7 +134,6 @@ def roles_menu(bot, call):
         types.InlineKeyboardButton("Free", callback_data="role_free")
     )
 
-    # Back to guide button
     markup.add(types.InlineKeyboardButton("🔙 Back to Guide", callback_data="pro"))
 
     text = """
@@ -138,23 +144,15 @@ Use the inline keyboard to discover the power of roles!
 To add or remove a role from a user you can use commands present in the role tabs or with /info -> ROLES.
 """
 
-    bot.edit_message_text(
-        text,
-        call.message.chat.id,
-        call.message.message_id,
-        reply_markup=markup
-    )
+    safe_edit(bot, call, text, markup)
 
-# ================= SHOW ROLE DETAILS =================
+# ================= ROLE DETAILS =================
 def show_role_detail(bot, call):
-    """Role buttons pe click karne par detail dikhaye"""
     if call.data in ROLE_GUIDES:
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("🔙 Back to Roles", callback_data="roles"))
 
-        bot.edit_message_text(
-            ROLE_GUIDES[call.data],
-            call.message.chat.id,
-            call.message.message_id,
-            reply_markup=markup
+        markup = types.InlineKeyboardMarkup()
+        markup.add(
+            types.InlineKeyboardButton("🔙 Back to Roles", callback_data="roles")
         )
+
+        safe_edit(bot, call, ROLE_GUIDES[call.data], markup)
