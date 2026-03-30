@@ -11,44 +11,29 @@ def register(bot):
         bot.answer_callback_query(call.id)
 
         # ================= HELP SECTIONS =================
-
         if call.data == "basic":
             basic.show(bot, call)
-
         elif call.data == "advanced":
             advanced.show(bot, call)
-
         elif call.data == "expert":
             expert.show(bot, call)
-
         elif call.data == "pro":
             pro.show(bot, call)
-
         elif call.data == "roles":
             pro.roles_menu(bot, call)
-
-        # Role details
         elif call.data in pro.ROLE_GUIDES:
             pro.show_role_detail(bot, call)
-
         elif call.data == "back_help":
-
             markup = types.InlineKeyboardMarkup(row_width=2)
-
-            markup.add(
-                types.InlineKeyboardButton("👨‍🏫 Bot Configuration Tutorial 👨‍🏫", callback_data="tutorial")
-            )
-
+            markup.add(types.InlineKeyboardButton("👨‍🏫 Bot Configuration Tutorial 👨‍🏫", callback_data="tutorial"))
             markup.add(
                 types.InlineKeyboardButton("👨 Basic", callback_data="basic"),
                 types.InlineKeyboardButton("🧑 Advanced", callback_data="advanced")
             )
-
             markup.add(
                 types.InlineKeyboardButton("🕵️ Expert", callback_data="expert"),
                 types.InlineKeyboardButton("👨‍💼 Pro", callback_data="pro")
             )
-
             bot.edit_message_text(
                 "📖 <b>Help Menu</b>\n\nChoose a category below:",
                 call.message.chat.id,
@@ -57,25 +42,14 @@ def register(bot):
             )
 
         # ================= SETTINGS SYSTEM =================
-
         elif call.data == "settings":
-
             groups = get_groups()
             markup = types.InlineKeyboardMarkup()
             found = False
-
             for chat_id, info in groups.items():
-
                 if is_admin(bot, call.from_user.id, int(chat_id)):
-
-                    markup.add(
-                        types.InlineKeyboardButton(
-                            f"⚙️ {info['title']}",
-                            callback_data=f"manage_{chat_id}"
-                        )
-                    )
+                    markup.add(types.InlineKeyboardButton(f"⚙️ {info['title']}", callback_data=f"manage_{chat_id}"))
                     found = True
-
             text = """
 ⚙️ <b>Manage Group Settings</b>
 
@@ -85,7 +59,6 @@ def register(bot):
 • Send /reload in the group and try again  
 • Send /settings in the group and then press <b>Open in Pvt</b>
 """
-
             if not found:
                 bot.edit_message_text(
                     text + "\n\n❌ No groups found where you are admin.",
@@ -93,18 +66,10 @@ def register(bot):
                     call.message.message_id
                 )
                 return
-
-            bot.edit_message_text(
-                text,
-                call.message.chat.id,
-                call.message.message_id,
-                reply_markup=markup
-            )
+            bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=markup)
 
         elif call.data.startswith("manage_"):
-
             chat_id = call.data.split("_")[1]
-
             bot.edit_message_text(
                 f"""
 ⚙️ <b>Managing Group</b>
@@ -123,26 +88,42 @@ Stay tuned 🚀
             )
 
         # ================= PRO GUIDES =================
-
         elif call.data == "setup_staff":
-            bot.edit_message_text(
-                "⚙️ Staff setup guide (Coming soon)",
-                call.message.chat.id,
-                call.message.message_id
-            )
-
+            bot.edit_message_text("⚙️ Staff setup guide (Coming soon)", call.message.chat.id, call.message.message_id)
         elif call.data == "clone":
-            bot.edit_message_text(
-                "🤖 Clone creation guide (Coming soon)",
-                call.message.chat.id,
-                call.message.message_id
-            )
+            bot.edit_message_text("🤖 Clone creation guide (Coming soon)", call.message.chat.id, call.message.message_id)
 
         # ================= DEFAULT =================
-
         else:
-            bot.edit_message_text(
-                "Feature coming soon...",
-                call.message.chat.id,
-                call.message.message_id
-            )
+            bot.edit_message_text("Feature coming soon...", call.message.chat.id, call.message.message_id)
+
+# ================= GROUP JOIN MESSAGES =================
+@bot.chat_member_handler()
+def bot_added(update):
+    # Check if bot itself was added as admin
+    if update.new_chat_member.user.id == bot.get_me().id and update.new_chat_member.status == "administrator":
+        chat_id = update.chat.id
+
+        # ===== First message =====
+        markup1 = types.InlineKeyboardMarkup()
+        markup1.add(types.InlineKeyboardButton("Subscribe My Channel", url="https://t.me/YourChannel"))
+
+        bot.send_message(
+            chat_id,
+            "Thank you for adding me to your group as an Administrator!\n"
+            "Start me in private chat, so I can send you the error messages there, without obstructing this chat!",
+            reply_markup=markup1
+        )
+
+        # ===== Second message =====
+        markup2 = types.InlineKeyboardMarkup(row_width=2)
+        markup2.add(
+            types.InlineKeyboardButton("See 👀", callback_data="see_info"),
+            types.InlineKeyboardButton("Settings", callback_data="settings")
+        )
+
+        bot.send_message(
+            chat_id,
+            "In order to set me up, use /settings  or press the underlying button.",
+            reply_markup=markup2
+        )
