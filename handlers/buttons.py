@@ -24,8 +24,6 @@ def register(bot):
         elif call.data == "pro":
             pro.show(bot, call)
 
-        )
-
         elif call.data == "roles":
             pro.roles_menu(bot, call)
 
@@ -63,7 +61,6 @@ def register(bot):
         elif call.data == "settings":
 
             groups = get_groups()
-
             markup = types.InlineKeyboardMarkup()
             found = False
 
@@ -137,13 +134,6 @@ Stay tuned 🚀
         elif call.data == "clone":
             bot.edit_message_text(
                 "🤖 Clone creation guide (Coming soon)",
-                call.message.chat.id,
-                call.message.message_id
-            )
-
-        elif call.data == "roles":
-            bot.edit_message_text(
-                "👥 User roles guide (Coming soon)",
                 call.message.chat.id,
                 call.message.message_id
             )
