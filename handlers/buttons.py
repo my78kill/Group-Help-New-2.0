@@ -5,9 +5,9 @@ from utils.helpers import is_admin
 
 def register(bot):
 
+    # ================= CALLBACK QUERY HANDLER =================
     @bot.callback_query_handler(func=lambda call: True)
     def callback_handler(call):
-
         bot.answer_callback_query(call.id)
 
         # ================= HELP SECTIONS =================
@@ -97,33 +97,32 @@ Stay tuned 🚀
         else:
             bot.edit_message_text("Feature coming soon...", call.message.chat.id, call.message.message_id)
 
-# ================= GROUP JOIN MESSAGES =================
-@bot.chat_member_handler()
-def bot_added(update):
-    # Check if bot itself was added as admin
-    if update.new_chat_member.user.id == bot.get_me().id and update.new_chat_member.status == "administrator":
-        chat_id = update.chat.id
+    # ================= GROUP JOIN HANDLER =================
+    @bot.chat_member_handler()
+    def bot_added(update):
+        if update.new_chat_member.user.id == bot.get_me().id and update.new_chat_member.status == "administrator":
+            chat_id = update.chat.id
 
-        # ===== First message =====
-        markup1 = types.InlineKeyboardMarkup()
-        markup1.add(types.InlineKeyboardButton("Subscribe My Channel", url="https://t.me/YourChannel"))
+            # ===== First message =====
+            markup1 = types.InlineKeyboardMarkup()
+            markup1.add(types.InlineKeyboardButton("Subscribe My Channel", url="https://t.me/YourChannel"))
 
-        bot.send_message(
-            chat_id,
-            "Thank you for adding me to your group as an Administrator!\n"
-            "Start me in private chat, so I can send you the error messages there, without obstructing this chat!",
-            reply_markup=markup1
-        )
+            bot.send_message(
+                chat_id,
+                "Thank you for adding me to your group as an Administrator!\n"
+                "Start me in private chat, so I can send you the error messages there, without obstructing this chat!",
+                reply_markup=markup1
+            )
 
-        # ===== Second message =====
-        markup2 = types.InlineKeyboardMarkup(row_width=2)
-        markup2.add(
-            types.InlineKeyboardButton("See 👀", callback_data="see_info"),
-            types.InlineKeyboardButton("Settings", callback_data="settings")
-        )
+            # ===== Second message =====
+            markup2 = types.InlineKeyboardMarkup(row_width=2)
+            markup2.add(
+                types.InlineKeyboardButton("See 👀", callback_data="see_info"),
+                types.InlineKeyboardButton("Settings", callback_data="settings")
+            )
 
-        bot.send_message(
-            chat_id,
-            "In order to set me up, use /settings  or press the underlying button.",
-            reply_markup=markup2
-        )
+            bot.send_message(
+                chat_id,
+                "In order to set me up, use /settings  or press the underlying button.",
+                reply_markup=markup2
+            )
