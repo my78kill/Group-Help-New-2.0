@@ -1,7 +1,7 @@
 from telebot import types
 from handlers.help_sections import basic, advanced, expert, pro
 from handlers.settings import main as settings_main
-from utils.db import get_groups, add_group   # 🔥 add_group important
+from utils.db import get_groups, add_group
 from utils.helpers import is_admin
 
 
@@ -29,7 +29,6 @@ def register(bot):
 
         # ===== GROUP =====
         if message.chat.type != "private":
-
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
                 types.InlineKeyboardButton("Open here", callback_data="settings_here"),
@@ -82,6 +81,14 @@ def register(bot):
     def callback_handler(call):
         bot.answer_callback_query(call.id)
 
+        # ===== CONTEXT SAVE (VERY IMPORTANT) =====
+        chat_id = None
+        group_name = None
+
+        if call.message.chat.type != "private":
+            chat_id = call.message.chat.id
+            group_name = call.message.chat.title
+
         # ================= HELP =================
         if call.data == "basic":
             basic.show(bot, call)
@@ -118,13 +125,7 @@ def register(bot):
         # ================= SETTINGS FLOW =================
 
         elif call.data == "settings_here":
-            # 🔥 OPEN REAL SETTINGS PANEL
-            settings_main.show(
-                bot,
-                call,
-                call.message.chat.id,
-                call.message.chat.title
-            )
+            settings_main.show(bot, call, chat_id, group_name)
 
         elif call.data == "settings_private":
 
@@ -132,7 +133,6 @@ def register(bot):
             group_id = call.message.chat.id
             group_name = call.message.chat.title
 
-            # ✅ FIXED LINK
             markup = types.InlineKeyboardMarkup()
             markup.add(
                 types.InlineKeyboardButton(
@@ -143,7 +143,6 @@ def register(bot):
 
             safe_edit(call, "✅ Settings menu sent in private chat.", markup)
 
-            # ===== SEND DM =====
             try:
                 settings_main.direct_open(
                     bot,
@@ -152,10 +151,7 @@ def register(bot):
                     group_name
                 )
             except:
-                bot.send_message(
-                    call.message.chat.id,
-                    "❌ Please start me in private first!"
-                )
+                bot.send_message(call.message.chat.id, "❌ Please start me in private first!")
 
         elif call.data.startswith("manage_"):
             chat_id = call.data.split("_")[1]
@@ -167,8 +163,19 @@ def register(bot):
 
             settings_main.show(bot, call, chat_id, group_name)
 
-        # ================= SETTINGS BUTTON ACTIONS =================
-        elif call.data.startswith("set_"):
+        # ================= NEW MENUS =================
+
+        elif call.data == "set_delete":
+            settings_main.delete_menu(bot, call, group_name)
+
+        elif call.data == "set_other":
+            settings_main.other_menu(bot, call, group_name)
+
+        elif call.data == "back_settings":
+            settings_main.show(bot, call, chat_id, group_name)
+
+        # ================= SETTINGS ACTIONS =================
+        elif call.data.startswith("set_") or call.data.startswith("del_"):
             safe_edit(call, "⚙️ This setting is coming soon...")
 
         elif call.data == "close_settings":
@@ -197,7 +204,7 @@ def register(bot):
             chat_id = update.chat.id
             title = update.chat.title
 
-            # 🔥 SAVE GROUP (MOST IMPORTANT FIX)
+            # 🔥 SAVE GROUP
             add_group(chat_id, title)
 
             if update.new_chat_member.status in ["administrator", "member"]:
@@ -227,4 +234,4 @@ def register(bot):
                     chat_id,
                     "In order to set me up, use /settings or press the underlying button.",
                     reply_markup=markup2
-        )
+                )
