@@ -172,7 +172,6 @@ Select one of the settings that you want to change.
                     "❌ Please start me in private first!"
                 )
 
-        # 🔥 FIXED: PASS CHAT_ID + GROUP NAME PROPERLY
         elif call.data.startswith("manage_"):
             chat_id = call.data.split("_")[1]
 
@@ -181,8 +180,14 @@ Select one of the settings that you want to change.
             except:
                 group_name = call.message.chat.title
 
-            # 👉 CALL SETTINGS MODULE
             settings_main.show(bot, call, chat_id, group_name)
+
+        # ================= SETTINGS BUTTON ACTIONS =================
+        elif call.data.startswith("set_"):
+            safe_edit(call, "⚙️ This setting is coming soon...")
+
+        elif call.data == "close_settings":
+            safe_edit(call, "❌ Settings closed.")
 
         # ================= PRO =================
         elif call.data == "setup_staff":
