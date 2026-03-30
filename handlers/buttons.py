@@ -1,7 +1,7 @@
 from telebot import types
 from handlers.help_sections import basic, advanced, expert, pro
 from handlers.settings import main as settings_main
-from utils.db import get_groups
+from utils.db import get_groups, add_group   # 🔥 add_group important
 from utils.helpers import is_admin
 
 
@@ -103,7 +103,6 @@ def register(bot):
 
         elif call.data == "back_help":
             markup = types.InlineKeyboardMarkup(row_width=2)
-
             markup.add(types.InlineKeyboardButton("👨‍🏫 Bot Configuration Tutorial 👨‍🏫", callback_data="tutorial"))
             markup.add(
                 types.InlineKeyboardButton("👨 Basic", callback_data="basic"),
@@ -119,19 +118,26 @@ def register(bot):
         # ================= SETTINGS FLOW =================
 
         elif call.data == "settings_here":
-            safe_edit(call, "⚙️ Settings panel (Coming soon...)")
+            # 🔥 OPEN REAL SETTINGS PANEL
+            settings_main.show(
+                bot,
+                call,
+                call.message.chat.id,
+                call.message.chat.title
+            )
 
         elif call.data == "settings_private":
 
             bot_username = bot.get_me().username
+            group_id = call.message.chat.id
             group_name = call.message.chat.title
 
-            # edit group message
+            # ✅ FIXED LINK
             markup = types.InlineKeyboardMarkup()
             markup.add(
                 types.InlineKeyboardButton(
                     "Go to the chat 🔹",
-                    url=f"https://t.me/{bot_username}?start=settings"
+                    url=f"https://t.me/{bot_username}?start=settings_{group_id}"
                 )
             )
 
@@ -139,33 +145,12 @@ def register(bot):
 
             # ===== SEND DM =====
             try:
-                groups = get_groups()
-                markup_dm = types.InlineKeyboardMarkup()
-                found = False
-
-                for chat_id, info in groups.items():
-                    if is_admin(bot, call.from_user.id, int(chat_id)):
-                        markup_dm.add(
-                            types.InlineKeyboardButton(
-                                f"⚙️ {info['title']}",
-                                callback_data=f"manage_{chat_id}"
-                            )
-                        )
-                        found = True
-
-                text = f"""
-⚙️ <b>SETTINGS</b>
-
-🏷 Group: <b>{group_name}</b>
-
-Select one of the settings that you want to change.
-"""
-
-                if found:
-                    bot.send_message(call.from_user.id, text, reply_markup=markup_dm)
-                else:
-                    bot.send_message(call.from_user.id, "❌ No groups found.")
-
+                settings_main.direct_open(
+                    bot,
+                    call.from_user,
+                    group_id,
+                    group_name
+                )
             except:
                 bot.send_message(
                     call.message.chat.id,
@@ -210,10 +195,13 @@ Select one of the settings that you want to change.
         if update.new_chat_member and update.new_chat_member.user.id == bot.get_me().id:
 
             chat_id = update.chat.id
+            title = update.chat.title
+
+            # 🔥 SAVE GROUP (MOST IMPORTANT FIX)
+            add_group(chat_id, title)
 
             if update.new_chat_member.status in ["administrator", "member"]:
 
-                # ===== FIRST MESSAGE =====
                 markup1 = types.InlineKeyboardMarkup()
                 markup1.add(
                     types.InlineKeyboardButton(
@@ -229,7 +217,6 @@ Select one of the settings that you want to change.
                     reply_markup=markup1
                 )
 
-                # ===== SECOND MESSAGE =====
                 markup2 = types.InlineKeyboardMarkup(row_width=2)
                 markup2.add(
                     types.InlineKeyboardButton("See 👀", callback_data="see_info"),
@@ -240,4 +227,4 @@ Select one of the settings that you want to change.
                     chat_id,
                     "In order to set me up, use /settings or press the underlying button.",
                     reply_markup=markup2
-                )
+        )
