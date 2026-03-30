@@ -21,6 +21,65 @@ def register(bot):
                 reply_markup=markup
             )
 
+    # ================= SETTINGS COMMAND =================
+    @bot.message_handler(commands=['settings'])
+    def settings_cmd(message):
+
+        # ===== GROUP =====
+        if message.chat.type != "private":
+            markup = types.InlineKeyboardMarkup()
+            markup.add(
+                types.InlineKeyboardButton(
+                    "Open in Private 🔹",
+                    url=f"https://t.me/{bot.get_me().username}?start=settings"
+                )
+            )
+
+            bot.send_message(
+                message.chat.id,
+                "⚙️ Open settings in private chat.",
+                reply_markup=markup
+            )
+            return
+
+        # ===== PRIVATE =====
+        groups = get_groups()
+        markup = types.InlineKeyboardMarkup()
+        found = False
+
+        for chat_id, info in groups.items():
+            if is_admin(bot, message.from_user.id, int(chat_id)):
+                markup.add(
+                    types.InlineKeyboardButton(
+                        f"⚙️ {info['title']}",
+                        callback_data=f"manage_{chat_id}"
+                    )
+                )
+                found = True
+
+        text = """
+⚙️ <b>Manage Group Settings</b>
+
+👉🏻 Select the group whose settings you want to change.
+
+❗ If your group is not listed:
+• Send /reload in the group and try again  
+• Send /settings in the group and then press <b>Open in Pvt</b>
+"""
+
+        if not found:
+            bot.send_message(
+                message.chat.id,
+                text + "\n\n❌ No groups found where you are admin."
+            )
+            return
+
+        bot.send_message(
+            message.chat.id,
+            text,
+            reply_markup=markup
+        )
+
     # ================= CALLBACK QUERY HANDLER =================
     @bot.callback_query_handler(func=lambda call: call.data is not None)
     def callback_handler(call):
@@ -123,7 +182,7 @@ Stay tuned 🚀
         elif call.data == "clone":
             safe_edit(call, "🤖 Clone creation guide (Coming soon)")
 
-        # ================= EXTRA FIX =================
+        # ================= EXTRA =================
         elif call.data == "see_info":
             safe_edit(call, "ℹ️ More info coming soon...")
 
@@ -135,7 +194,6 @@ Stay tuned 🚀
     @bot.chat_member_handler()
     def bot_added(update):
 
-        # Check if bot itself added
         if update.new_chat_member and update.new_chat_member.user.id == bot.get_me().id:
 
             chat_id = update.chat.id
@@ -145,7 +203,10 @@ Stay tuned 🚀
                 # ===== First message =====
                 markup1 = types.InlineKeyboardMarkup()
                 markup1.add(
-                    types.InlineKeyboardButton("Subscribe My Channel", url="https://t.me/YourChannel")
+                    types.InlineKeyboardButton(
+                        "Subscribe My Channel",
+                        url="https://t.me/YourChannel"
+                    )
                 )
 
                 bot.send_message(
