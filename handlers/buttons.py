@@ -14,160 +14,79 @@ def register(bot):
                 text,
                 call.message.chat.id,
                 call.message.message_id,
-                reply_markup=markup
+                reply_markup=markup,
+                parse_mode="HTML"
             )
         except:
             bot.send_message(
                 call.message.chat.id,
                 text,
-                reply_markup=markup
+                reply_markup=markup,
+                parse_mode="HTML"
             )
 
-    # ================= /SETTINGS COMMAND =================
+    # ================= /SETTINGS =================
     @bot.message_handler(commands=['settings'])
     def settings_cmd(message):
 
-        # ===== GROUP =====
         if message.chat.type != "private":
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
                 types.InlineKeyboardButton("Open here", callback_data="settings_here"),
                 types.InlineKeyboardButton("Open in private chat", callback_data="settings_private")
             )
-
-            bot.send_message(
-                message.chat.id,
-                "Where do you want to open the settings menu?",
-                reply_markup=markup
-            )
+            bot.send_message(message.chat.id, "Where do you want to open settings?", reply_markup=markup)
             return
 
-        # ===== PRIVATE =====
         groups = get_groups()
         markup = types.InlineKeyboardMarkup()
         found = False
 
         for chat_id, info in groups.items():
             if is_admin(bot, message.from_user.id, int(chat_id)):
-                markup.add(
-                    types.InlineKeyboardButton(
-                        f"⚙️ {info['title']}",
-                        callback_data=f"manage_{chat_id}"
-                    )
-                )
+                markup.add(types.InlineKeyboardButton(
+                    f"⚙️ {info['title']}",
+                    callback_data=f"manage_{chat_id}"
+                ))
                 found = True
 
-        text = """
-⚙️ <b>Manage Group Settings</b>
-
-👉🏻 Select the group whose settings you want to change.
-
-❗ If your group is not listed:
-• Send /reload in the group and try again  
-• Send /settings in the group and then press <b>Open in Pvt</b>
-"""
-
         if not found:
-            bot.send_message(
-                message.chat.id,
-                text + "\n\n❌ No groups found where you are admin."
-            )
+            bot.send_message(message.chat.id, "❌ No groups found where you are admin.")
             return
 
-        bot.send_message(message.chat.id, text, reply_markup=markup)
+        bot.send_message(message.chat.id, "⚙️ Select a group:", reply_markup=markup)
 
-    # ================= CALLBACK HANDLER =================
+    # ================= CALLBACK =================
     @bot.callback_query_handler(func=lambda call: True)
     def callback_handler(call):
         bot.answer_callback_query(call.id)
 
-        # ===== CONTEXT =====
-        chat_id = None
-        group_name = None
-
-        if call.message.chat.type != "private":
-            chat_id = call.message.chat.id
-            group_name = call.message.chat.title
-
-        # ================= HELP =================
-        if call.data == "basic":
-            basic.show(bot, call)
-
-        elif call.data == "advanced":
-            advanced.show(bot, call)
-
-        elif call.data == "expert":
-            expert.show(bot, call)
-
-        elif call.data == "pro":
-            pro.show(bot, call)
-
-        elif call.data == "roles":
-            pro.roles_menu(bot, call)
-
-        elif call.data in pro.ROLE_GUIDES:
-            pro.show_role_detail(bot, call)
-
-        elif call.data == "back_help":
-            markup = types.InlineKeyboardMarkup(row_width=2)
-            markup.add(types.InlineKeyboardButton("👨‍🏫 Tutorial", callback_data="tutorial"))
-            markup.add(
-                types.InlineKeyboardButton("👨 Basic", callback_data="basic"),
-                types.InlineKeyboardButton("🧑 Advanced", callback_data="advanced")
-            )
-            markup.add(
-                types.InlineKeyboardButton("🕵️ Expert", callback_data="expert"),
-                types.InlineKeyboardButton("👨‍💼 Pro", callback_data="pro")
-            )
-
-            safe_edit(call, "📖 <b>Help Menu</b>\n\nChoose a category below:", markup)
+        chat_id = call.message.chat.id
+        group_name = call.message.chat.title
 
         # ================= SETTINGS =================
-
-        elif call.data == "settings_here":
+        if call.data == "settings_here":
             settings_main.show(bot, call, chat_id, group_name)
 
         elif call.data == "settings_private":
 
             bot_username = bot.get_me().username
-            group_id = call.message.chat.id
-            group_name = call.message.chat.title
+            group_id = chat_id
 
             markup = types.InlineKeyboardMarkup()
-            markup.add(
-                types.InlineKeyboardButton(
-                    "Go to the chat 🔹",
-                    url=f"https://t.me/{bot_username}?start=settings_{group_id}"
-                )
-            )
+            markup.add(types.InlineKeyboardButton(
+                "Open in DM 🔹",
+                url=f"https://t.me/{bot_username}?start=settings_{group_id}"
+            ))
 
-            safe_edit(call, "✅ Settings menu sent in private chat.", markup)
-
-            try:
-                settings_main.direct_open(
-                    bot,
-                    call.from_user,
-                    group_id,
-                    group_name
-                )
-            except:
-                bot.send_message(
-                    call.message.chat.id,
-                    "❌ Please start me in private first!"
-                )
+            safe_edit(call, "✅ Open in private chat.", markup)
 
         elif call.data.startswith("manage_"):
             chat_id = call.data.split("_")[1]
-
-            try:
-                group_name = get_groups()[chat_id]["title"]
-            except:
-                group_name = call.message.chat.title
-
+            group_name = get_groups().get(chat_id, {}).get("title", "Unknown")
             settings_main.show(bot, call, chat_id, group_name)
 
-        # ================= SETTINGS MENUS =================
-
+        # ================= EXTRA MENUS =================
         elif call.data == "set_delete":
             settings_main.delete_menu(bot, call, group_name)
 
@@ -179,7 +98,6 @@ def register(bot):
 
         # ================= REGULATION =================
         elif call.data == "set_regulation":
-
             markup = types.InlineKeyboardMarkup(row_width=1)
             markup.add(
                 types.InlineKeyboardButton("✍️ Customize Messages", callback_data="set_reg_msg"),
@@ -187,115 +105,142 @@ def register(bot):
                 types.InlineKeyboardButton("🔙 Back", callback_data="back_settings")
             )
 
-            text = """
+            safe_edit(call, """
 📜 <b>Group's regulations</b>
 
-From this menu you can manage the group's regulations, that will be shown with the command /rules.
-
-To edit who can use the /rules command, go to the "Commands permissions" section.
-"""
-
-            safe_edit(call, text, markup)
+Manage rules shown with /rules.
+""", markup)
 
         # ================= ANTI-SPAM =================
         elif call.data == "set_antispam":
-
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
                 types.InlineKeyboardButton("📘 Telegram Links", callback_data="set_spam_links"),
                 types.InlineKeyboardButton("📨 Forwarding", callback_data="set_spam_forward")
             )
             markup.add(
-                types.InlineKeyboardButton("⛓️ Total Links Block", callback_data="set_spam_total")
-            )
-            markup.add(
+                types.InlineKeyboardButton("⛓️ Total Links Block", callback_data="set_spam_total"),
                 types.InlineKeyboardButton("🔙 Back", callback_data="back_settings")
             )
 
-            text = """
-📨 <b>Anti-Spam</b>
-
-In this menu you can decide whether to protect your groups from unnecessary links, forwards, and quotes.
-"""
-
-            safe_edit(call, text, markup)
+            safe_edit(call, "📨 <b>Anti-Spam Settings</b>", markup)
 
         # ================= WELCOME =================
         elif call.data == "set_welcome":
-
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
-                types.InlineKeyboardButton("❌ Turn Off", callback_data="set_welcome_off"),
-                types.InlineKeyboardButton("☑️ Turn On", callback_data="set_welcome_on")
+                types.InlineKeyboardButton("❌ Off", callback_data="set_welcome_off"),
+                types.InlineKeyboardButton("☑️ On", callback_data="set_welcome_on")
             )
-            markup.add(
-                types.InlineKeyboardButton("✍️ Customize Message", callback_data="set_welcome_msg")
-            )
-            markup.add(
-                types.InlineKeyboardButton("♻️ Delete Last Message", callback_data="set_welcome_delete")
-            )
-            markup.add(
-                types.InlineKeyboardButton("🔙 Back", callback_data="back_settings")
-            )
+            markup.add(types.InlineKeyboardButton("✍️ Customize", callback_data="set_welcome_msg"))
+            markup.add(types.InlineKeyboardButton("♻️ Delete Last", callback_data="set_welcome_delete"))
+            markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="back_settings"))
 
-            text = """
-💬 <b>Welcome Message</b>
-
-From this menu you can set a welcome message that will be sent when someone joins the group.
-
-Status: Off ❌  
-Mode: Send the welcome message at every join
-"""
-
-            safe_edit(call, text, markup)
+            safe_edit(call, "💬 <b>Welcome Message</b>\nStatus: Off ❌", markup)
 
         # ================= GOODBYE =================
         elif call.data == "set_goodbye":
-
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
-                types.InlineKeyboardButton("❌ Turn Off", callback_data="set_goodbye_off"),
-                types.InlineKeyboardButton("☑️ Turn On", callback_data="set_goodbye_on")
+                types.InlineKeyboardButton("❌ Off", callback_data="set_goodbye_off"),
+                types.InlineKeyboardButton("☑️ On", callback_data="set_goodbye_on")
+            )
+            markup.add(types.InlineKeyboardButton("✍️ Customize", callback_data="set_goodbye_msg"))
+            markup.add(types.InlineKeyboardButton("♻️ Delete Last", callback_data="set_goodbye_delete"))
+            markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="back_settings"))
+
+            safe_edit(call, "👋 <b>Goodbye Message</b>\nStatus: Off ❌", markup)
+
+        # ================= BLOCKS =================
+        elif call.data == "set_blocks":
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(
+                types.InlineKeyboardButton("❌ Off", callback_data="block_off"),
+                types.InlineKeyboardButton("☑️ On", callback_data="block_on")
             )
             markup.add(
-                types.InlineKeyboardButton("✍️ Customize Message", callback_data="set_goodbye_msg")
+                types.InlineKeyboardButton("🔇 Mute", callback_data="block_mute"),
+                types.InlineKeyboardButton("🚫 Ban", callback_data="block_ban")
+            )
+            markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="back_settings"))
+
+            safe_edit(call, """
+🤖 <b>Bot Block</b>
+
+Users cannot add bots.
+
+Status: Active
+""", markup)
+
+        # ================= ADMINS =================
+        elif call.data == "set_admins":
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(
+                types.InlineKeyboardButton("❌ Nobody", callback_data="admin_none"),
+                types.InlineKeyboardButton("👑 Founder", callback_data="admin_founder")
             )
             markup.add(
-                types.InlineKeyboardButton("♻️ Delete Last Message", callback_data="set_goodbye_delete")
+                types.InlineKeyboardButton("🔔 Tag Founder", callback_data="admin_tag_f"),
+                types.InlineKeyboardButton("🔔 Tag Admins", callback_data="admin_tag_a")
+            )
+            markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="back_settings"))
+
+            safe_edit(call, "🆘 <b>@admin command</b>\nStatus: Active", markup)
+
+        # ================= ANTIFLOOD =================
+        elif call.data == "set_antiflood":
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(
+                types.InlineKeyboardButton("📄 Messages", callback_data="af_msg"),
+                types.InlineKeyboardButton("⏱ Time", callback_data="af_time")
             )
             markup.add(
+                types.InlineKeyboardButton("❌ Off", callback_data="af_off"),
+                types.InlineKeyboardButton("🔇 Mute", callback_data="af_mute")
+            )
+            markup.add(
+                types.InlineKeyboardButton("🚫 Ban", callback_data="af_ban"),
+                types.InlineKeyboardButton("🗑 Delete ☑️", callback_data="af_del")
+            )
+            markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="back_settings"))
+
+            safe_edit(call, "🗣 <b>Antiflood Settings</b>", markup)
+
+        # ================= WARNS =================
+        elif call.data == "set_warns":
+            markup = types.InlineKeyboardMarkup(row_width=3)
+            markup.add(
+                types.InlineKeyboardButton("❌ Off", callback_data="warn_off"),
+                types.InlineKeyboardButton("🔇 Mute", callback_data="warn_mute"),
+                types.InlineKeyboardButton("⏱ Mute Time", callback_data="warn_time")
+            )
+            markup.add(
+                types.InlineKeyboardButton("2", callback_data="warn_2"),
+                types.InlineKeyboardButton("3 ☑️", callback_data="warn_3"),
+                types.InlineKeyboardButton("4", callback_data="warn_4"),
+                types.InlineKeyboardButton("5", callback_data="warn_5"),
+                types.InlineKeyboardButton("6", callback_data="warn_6")
+            )
+            markup.add(types.InlineKeyboardButton("🔙 Back", callback_data="back_settings"))
+
+            safe_edit(call, "❗ <b>User Warns</b>\nMax: 3", markup)
+
+        # ================= LINK =================
+        elif call.data == "set_link":
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            markup.add(
+                types.InlineKeyboardButton("✍️ Set Link", callback_data="link_set"),
                 types.InlineKeyboardButton("🔙 Back", callback_data="back_settings")
             )
 
-            text = """
-👋🏻 <b>Goodbye</b>
-
-From this menu you can set a goodbye message that will be sent when someone leaves the group.
-
-Status: Off ❌
-"""
-
-            safe_edit(call, text, markup)
+            safe_edit(call, "🔗 <b>Group Link</b>\nStatus: Off", markup)
 
         # ================= DEFAULT =================
-        elif call.data.startswith("set_") or call.data.startswith("del_"):
-            safe_edit(call, "⚙️ This setting is coming soon...")
-
         elif call.data == "close_settings":
-            safe_edit(call, "❌ Settings closed.")
-
-        # ================= PRO =================
-        elif call.data == "setup_staff":
-            safe_edit(call, "⚙️ Staff setup guide (Coming soon)")
-
-        elif call.data == "clone":
-            safe_edit(call, "🤖 Clone creation guide (Coming soon)")
-
-        elif call.data == "see_info":
-            safe_edit(call, "ℹ️ More info coming soon...")
+            safe_edit(call, "❌ Closed")
 
         else:
-            safe_edit(call, "Feature coming soon...")
+            safe_edit(call, "⚙️ Coming soon...")
 
     # ================= BOT ADDED =================
     @bot.chat_member_handler()
@@ -304,34 +249,6 @@ Status: Off ❌
         if update.new_chat_member and update.new_chat_member.user.id == bot.get_me().id:
 
             chat_id = update.chat.id
-            title = update.chat.title
+            add_group(chat_id, update.chat.title)
 
-            add_group(chat_id, title)
-
-            if update.new_chat_member.status in ["administrator", "member"]:
-
-                markup1 = types.InlineKeyboardMarkup()
-                markup1.add(
-                    types.InlineKeyboardButton(
-                        "Subscribe My Channel",
-                        url="https://t.me/YourChannel"
-                    )
-                )
-
-                bot.send_message(
-                    chat_id,
-                    "Thanks for adding me!\nStart me in private for full setup.",
-                    reply_markup=markup1
-                )
-
-                markup2 = types.InlineKeyboardMarkup(row_width=2)
-                markup2.add(
-                    types.InlineKeyboardButton("See 👀", callback_data="see_info"),
-                    types.InlineKeyboardButton("Settings", callback_data="settings")
-                )
-
-                bot.send_message(
-                    chat_id,
-                    "Use /settings to configure me.",
-                    reply_markup=markup2
-            )
+            bot.send_message(chat_id, "✅ Bot added! Use /settings to setup.")
