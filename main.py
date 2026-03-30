@@ -8,10 +8,10 @@ bot = TeleBot(TOKEN, parse_mode="HTML", threaded=True)
 # Flask server
 keep_alive()
 
-# Register handlers
+# Register handlers (🔥 FIXED ORDER)
 start.register(bot)
-buttons.register(bot)
 help.register(bot)
+buttons.register(bot)
 
 print("Bot + Web Alive Started...")
 
