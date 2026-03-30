@@ -1,8 +1,9 @@
 from telebot import types
 from handlers.help_sections import basic, advanced, expert, pro
-from handlers.settings import main as settings_main   # 👈 NEW
+from handlers.settings import main as settings_main
 from utils.db import get_groups
 from utils.helpers import is_admin
+
 
 def register(bot):
 
@@ -77,7 +78,7 @@ def register(bot):
         bot.send_message(message.chat.id, text, reply_markup=markup)
 
     # ================= CALLBACK HANDLER =================
-    @bot.callback_query_handler(func=lambda call: call.data is not None)
+    @bot.callback_query_handler(func=lambda call: True)
     def callback_handler(call):
         bot.answer_callback_query(call.id)
 
@@ -125,6 +126,7 @@ def register(bot):
             bot_username = bot.get_me().username
             group_name = call.message.chat.title
 
+            # edit group message
             markup = types.InlineKeyboardMarkup()
             markup.add(
                 types.InlineKeyboardButton(
@@ -135,7 +137,7 @@ def register(bot):
 
             safe_edit(call, "✅ Settings menu sent in private chat.", markup)
 
-            # DM SEND
+            # ===== SEND DM =====
             try:
                 groups = get_groups()
                 markup_dm = types.InlineKeyboardMarkup()
@@ -165,14 +167,22 @@ Select one of the settings that you want to change.
                     bot.send_message(call.from_user.id, "❌ No groups found.")
 
             except:
-                bot.send_message(call.message.chat.id, "❌ Please start me in private first!")
+                bot.send_message(
+                    call.message.chat.id,
+                    "❌ Please start me in private first!"
+                )
 
-        # 👇🔥 IMPORTANT CHANGE (अब settings UI open होगा)
+        # 🔥 FIXED: PASS CHAT_ID + GROUP NAME PROPERLY
         elif call.data.startswith("manage_"):
             chat_id = call.data.split("_")[1]
-            group_name = call.message.chat.title
 
-            settings_main.show(bot, call, group_name)
+            try:
+                group_name = get_groups()[chat_id]["title"]
+            except:
+                group_name = call.message.chat.title
+
+            # 👉 CALL SETTINGS MODULE
+            settings_main.show(bot, call, chat_id, group_name)
 
         # ================= PRO =================
         elif call.data == "setup_staff":
@@ -198,6 +208,7 @@ Select one of the settings that you want to change.
 
             if update.new_chat_member.status in ["administrator", "member"]:
 
+                # ===== FIRST MESSAGE =====
                 markup1 = types.InlineKeyboardMarkup()
                 markup1.add(
                     types.InlineKeyboardButton(
@@ -213,6 +224,7 @@ Select one of the settings that you want to change.
                     reply_markup=markup1
                 )
 
+                # ===== SECOND MESSAGE =====
                 markup2 = types.InlineKeyboardMarkup(row_width=2)
                 markup2.add(
                     types.InlineKeyboardButton("See 👀", callback_data="see_info"),
