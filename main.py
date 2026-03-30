@@ -3,7 +3,13 @@ from config import TOKEN
 from handlers import start, buttons, help
 from alive import keep_alive
 
-bot = TeleBot(TOKEN, parse_mode="HTML")
+# Bot object with allowed_updates for chat_member events
+bot = TeleBot(
+    TOKEN,
+    parse_mode="HTML",
+    threaded=True,
+    allowed_updates=['message', 'callback_query', 'chat_member']
+)
 
 # Start Flask server
 keep_alive()
