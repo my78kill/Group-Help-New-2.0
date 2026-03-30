@@ -24,8 +24,14 @@ def register(bot):
         elif call.data == "pro":
             pro.show(bot, call)
 
+        )
+
         elif call.data == "roles":
             pro.roles_menu(bot, call)
+
+        # Role details
+        elif call.data in pro.ROLE_GUIDES:
+            pro.show_role_detail(bot, call)
 
         elif call.data == "back_help":
 
