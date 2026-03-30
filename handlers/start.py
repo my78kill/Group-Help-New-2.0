@@ -8,16 +8,16 @@ def register(bot):
         chat_id = message.chat.id
         user_name = message.from_user.first_name
 
-        # Check payload (start=help)
-        start_payload = message.text.split(maxsplit=1)
-        payload = start_payload[1] if len(start_payload) > 1 else None
+        # Payload check (for /start help)
+        start_parts = message.text.split(maxsplit=1)
+        payload = start_parts[1] if len(start_parts) > 1 else None
 
         if message.chat.type == "private":
             if payload == "help":
                 help.show_help_menu(bot, message)
                 return
 
-            # Normal private start
+            # Normal private chat /start
             bot_username = bot.get_me().username
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
@@ -40,7 +40,7 @@ def register(bot):
             )
 
         else:
-            # Group start
+            # Group chat /start
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
                 types.InlineKeyboardButton("Settings", callback_data="start_settings"),
@@ -53,14 +53,14 @@ def register(bot):
                 reply_markup=markup
             )
 
-    # Group buttons click
+    # ================= Group Buttons Handler =================
     @bot.callback_query_handler(func=lambda call: call.data.startswith("start_"))
     def start_buttons_handler(call):
         bot.answer_callback_query(call.id)
         chat_id = call.message.chat.id
 
         if call.data == "start_commands":
-            # Redirect user to bot → help menu
+            # Redirect user to bot → private chat help menu
             bot.send_message(
                 chat_id,
                 f"📘 <b>Commands Explanation</b>\n\nClick the button below to open the help menu in the bot.",
