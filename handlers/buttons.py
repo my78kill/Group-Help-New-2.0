@@ -81,7 +81,7 @@ def register(bot):
     def callback_handler(call):
         bot.answer_callback_query(call.id)
 
-        # ===== CONTEXT SAVE (VERY IMPORTANT) =====
+        # ===== CONTEXT =====
         chat_id = None
         group_name = None
 
@@ -110,7 +110,7 @@ def register(bot):
 
         elif call.data == "back_help":
             markup = types.InlineKeyboardMarkup(row_width=2)
-            markup.add(types.InlineKeyboardButton("👨‍🏫 Bot Configuration Tutorial 👨‍🏫", callback_data="tutorial"))
+            markup.add(types.InlineKeyboardButton("👨‍🏫 Tutorial", callback_data="tutorial"))
             markup.add(
                 types.InlineKeyboardButton("👨 Basic", callback_data="basic"),
                 types.InlineKeyboardButton("🧑 Advanced", callback_data="advanced")
@@ -122,7 +122,7 @@ def register(bot):
 
             safe_edit(call, "📖 <b>Help Menu</b>\n\nChoose a category below:", markup)
 
-        # ================= SETTINGS FLOW =================
+        # ================= SETTINGS =================
 
         elif call.data == "settings_here":
             settings_main.show(bot, call, chat_id, group_name)
@@ -151,7 +151,10 @@ def register(bot):
                     group_name
                 )
             except:
-                bot.send_message(call.message.chat.id, "❌ Please start me in private first!")
+                bot.send_message(
+                    call.message.chat.id,
+                    "❌ Please start me in private first!"
+                )
 
         elif call.data.startswith("manage_"):
             chat_id = call.data.split("_")[1]
@@ -163,7 +166,7 @@ def register(bot):
 
             settings_main.show(bot, call, chat_id, group_name)
 
-        # ================= NEW MENUS =================
+        # ================= SETTINGS MENUS =================
 
         elif call.data == "set_delete":
             settings_main.delete_menu(bot, call, group_name)
@@ -174,7 +177,107 @@ def register(bot):
         elif call.data == "back_settings":
             settings_main.show(bot, call, chat_id, group_name)
 
-        # ================= SETTINGS ACTIONS =================
+        # ================= REGULATION =================
+        elif call.data == "set_regulation":
+
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            markup.add(
+                types.InlineKeyboardButton("✍️ Customize Messages", callback_data="set_reg_msg"),
+                types.InlineKeyboardButton("🕹️ Commands Permission", callback_data="set_reg_perm"),
+                types.InlineKeyboardButton("🔙 Back", callback_data="back_settings")
+            )
+
+            text = """
+📜 <b>Group's regulations</b>
+
+From this menu you can manage the group's regulations, that will be shown with the command /rules.
+
+To edit who can use the /rules command, go to the "Commands permissions" section.
+"""
+
+            safe_edit(call, text, markup)
+
+        # ================= ANTI-SPAM =================
+        elif call.data == "set_antispam":
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(
+                types.InlineKeyboardButton("📘 Telegram Links", callback_data="set_spam_links"),
+                types.InlineKeyboardButton("📨 Forwarding", callback_data="set_spam_forward")
+            )
+            markup.add(
+                types.InlineKeyboardButton("⛓️ Total Links Block", callback_data="set_spam_total")
+            )
+            markup.add(
+                types.InlineKeyboardButton("🔙 Back", callback_data="back_settings")
+            )
+
+            text = """
+📨 <b>Anti-Spam</b>
+
+In this menu you can decide whether to protect your groups from unnecessary links, forwards, and quotes.
+"""
+
+            safe_edit(call, text, markup)
+
+        # ================= WELCOME =================
+        elif call.data == "set_welcome":
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(
+                types.InlineKeyboardButton("❌ Turn Off", callback_data="set_welcome_off"),
+                types.InlineKeyboardButton("☑️ Turn On", callback_data="set_welcome_on")
+            )
+            markup.add(
+                types.InlineKeyboardButton("✍️ Customize Message", callback_data="set_welcome_msg")
+            )
+            markup.add(
+                types.InlineKeyboardButton("♻️ Delete Last Message", callback_data="set_welcome_delete")
+            )
+            markup.add(
+                types.InlineKeyboardButton("🔙 Back", callback_data="back_settings")
+            )
+
+            text = """
+💬 <b>Welcome Message</b>
+
+From this menu you can set a welcome message that will be sent when someone joins the group.
+
+Status: Off ❌  
+Mode: Send the welcome message at every join
+"""
+
+            safe_edit(call, text, markup)
+
+        # ================= GOODBYE =================
+        elif call.data == "set_goodbye":
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(
+                types.InlineKeyboardButton("❌ Turn Off", callback_data="set_goodbye_off"),
+                types.InlineKeyboardButton("☑️ Turn On", callback_data="set_goodbye_on")
+            )
+            markup.add(
+                types.InlineKeyboardButton("✍️ Customize Message", callback_data="set_goodbye_msg")
+            )
+            markup.add(
+                types.InlineKeyboardButton("♻️ Delete Last Message", callback_data="set_goodbye_delete")
+            )
+            markup.add(
+                types.InlineKeyboardButton("🔙 Back", callback_data="back_settings")
+            )
+
+            text = """
+👋🏻 <b>Goodbye</b>
+
+From this menu you can set a goodbye message that will be sent when someone leaves the group.
+
+Status: Off ❌
+"""
+
+            safe_edit(call, text, markup)
+
+        # ================= DEFAULT =================
         elif call.data.startswith("set_") or call.data.startswith("del_"):
             safe_edit(call, "⚙️ This setting is coming soon...")
 
@@ -191,7 +294,6 @@ def register(bot):
         elif call.data == "see_info":
             safe_edit(call, "ℹ️ More info coming soon...")
 
-        # ================= DEFAULT =================
         else:
             safe_edit(call, "Feature coming soon...")
 
@@ -204,7 +306,6 @@ def register(bot):
             chat_id = update.chat.id
             title = update.chat.title
 
-            # 🔥 SAVE GROUP
             add_group(chat_id, title)
 
             if update.new_chat_member.status in ["administrator", "member"]:
@@ -219,8 +320,7 @@ def register(bot):
 
                 bot.send_message(
                     chat_id,
-                    "Thank you for adding me to your group as an Administrator!\n"
-                    "Start me in private chat, so I can send you the error messages there.",
+                    "Thanks for adding me!\nStart me in private for full setup.",
                     reply_markup=markup1
                 )
 
@@ -232,6 +332,6 @@ def register(bot):
 
                 bot.send_message(
                     chat_id,
-                    "In order to set me up, use /settings or press the underlying button.",
+                    "Use /settings to configure me.",
                     reply_markup=markup2
-                )
+            )
