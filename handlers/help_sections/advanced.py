@@ -32,9 +32,16 @@ def show(bot, call):
 👮🏻 /intervention - request official support help  
 """
 
-    bot.edit_message_text(
-        text,
-        call.message.chat.id,
-        call.message.message_id,
-        reply_markup=markup
-    )
+    try:
+        bot.edit_message_text(
+            text,
+            call.message.chat.id,
+            call.message.message_id,
+            reply_markup=markup
+        )
+    except:
+        bot.send_message(
+            call.message.chat.id,
+            text,
+            reply_markup=markup
+        )
