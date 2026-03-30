@@ -24,6 +24,9 @@ def register(bot):
         elif call.data == "pro":
             pro.show(bot, call)
 
+        elif call.data == "roles":
+            pro.roles_menu(bot, call)
+
         elif call.data == "back_help":
 
             markup = types.InlineKeyboardMarkup(row_width=2)
