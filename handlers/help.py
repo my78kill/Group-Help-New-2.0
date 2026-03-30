@@ -4,8 +4,8 @@ def register(bot):
 
     @bot.message_handler(commands=['help'])
     def help_cmd(message):
-        # Group me /help → show blue-link style
         if message.chat.type != "private":
+            # Group → blue-link style
             markup = types.InlineKeyboardMarkup()
             markup.add(
                 types.InlineKeyboardButton(
@@ -19,11 +19,12 @@ def register(bot):
                 reply_markup=markup
             )
         else:
-            # Private chat → show full buttons menu
+            # Private chat → full buttons
             show_help_menu(bot, message)
 
 
 def show_help_menu(bot, call_or_message):
+    """Private chat /help menu with full buttons"""
     markup = types.InlineKeyboardMarkup(row_width=2)
     markup.add(
         types.InlineKeyboardButton("👨‍🏫 Bot Configuration Tutorial 👨‍🏫", callback_data="tutorial")
@@ -38,7 +39,6 @@ def show_help_menu(bot, call_or_message):
     )
 
     chat_id = call_or_message.chat.id
-    # Telegram callback message_id
     message_id = getattr(call_or_message, "message_id", None)
 
     if message_id:  # callback query
