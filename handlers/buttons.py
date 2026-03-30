@@ -5,7 +5,7 @@ from utils.helpers import is_admin
 
 def register(bot):
 
-    # ================= SAFE EDIT FUNCTION =================
+    # ================= SAFE EDIT =================
     def safe_edit(call, text, markup=None):
         try:
             bot.edit_message_text(
@@ -21,23 +21,22 @@ def register(bot):
                 reply_markup=markup
             )
 
-    # ================= SETTINGS COMMAND =================
+    # ================= /SETTINGS COMMAND =================
     @bot.message_handler(commands=['settings'])
     def settings_cmd(message):
 
         # ===== GROUP =====
         if message.chat.type != "private":
-            markup = types.InlineKeyboardMarkup()
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
-                types.InlineKeyboardButton(
-                    "Open in Private 🔹",
-                    url=f"https://t.me/{bot.get_me().username}?start=settings"
-                )
+                types.InlineKeyboardButton("Open here", callback_data="settings_here"),
+                types.InlineKeyboardButton("Open in private chat", callback_data="settings_private")
             )
 
             bot.send_message(
                 message.chat.id,
-                "⚙️ Open settings in private chat.",
+                "Where do you want to open the settings menu?",
                 reply_markup=markup
             )
             return
@@ -74,18 +73,14 @@ def register(bot):
             )
             return
 
-        bot.send_message(
-            message.chat.id,
-            text,
-            reply_markup=markup
-        )
+        bot.send_message(message.chat.id, text, reply_markup=markup)
 
-    # ================= CALLBACK QUERY HANDLER =================
+    # ================= CALLBACK HANDLER =================
     @bot.callback_query_handler(func=lambda call: call.data is not None)
     def callback_handler(call):
         bot.answer_callback_query(call.id)
 
-        # ================= HELP SECTIONS =================
+        # ================= HELP =================
         if call.data == "basic":
             basic.show(bot, call)
 
@@ -107,15 +102,11 @@ def register(bot):
         elif call.data == "back_help":
             markup = types.InlineKeyboardMarkup(row_width=2)
 
-            markup.add(
-                types.InlineKeyboardButton("👨‍🏫 Bot Configuration Tutorial 👨‍🏫", callback_data="tutorial")
-            )
-
+            markup.add(types.InlineKeyboardButton("👨‍🏫 Bot Configuration Tutorial 👨‍🏫", callback_data="tutorial"))
             markup.add(
                 types.InlineKeyboardButton("👨 Basic", callback_data="basic"),
                 types.InlineKeyboardButton("🧑 Advanced", callback_data="advanced")
             )
-
             markup.add(
                 types.InlineKeyboardButton("🕵️ Expert", callback_data="expert"),
                 types.InlineKeyboardButton("👨‍💼 Pro", callback_data="pro")
@@ -123,38 +114,61 @@ def register(bot):
 
             safe_edit(call, "📖 <b>Help Menu</b>\n\nChoose a category below:", markup)
 
-        # ================= SETTINGS SYSTEM =================
-        elif call.data == "settings":
+        # ================= SETTINGS FLOW =================
 
-            groups = get_groups()
+        elif call.data == "settings_here":
+            safe_edit(call, "⚙️ Settings panel (Coming soon...)")
+
+        elif call.data == "settings_private":
+
+            bot_username = bot.get_me().username
+            group_name = call.message.chat.title
+
+            # edit group message
             markup = types.InlineKeyboardMarkup()
-            found = False
+            markup.add(
+                types.InlineKeyboardButton(
+                    "Go to the chat 🔹",
+                    url=f"https://t.me/{bot_username}?start=settings"
+                )
+            )
 
-            for chat_id, info in groups.items():
-                if is_admin(bot, call.from_user.id, int(chat_id)):
-                    markup.add(
-                        types.InlineKeyboardButton(
-                            f"⚙️ {info['title']}",
-                            callback_data=f"manage_{chat_id}"
+            safe_edit(call, "✅ Settings menu sent in private chat.", markup)
+
+            # send DM
+            try:
+                groups = get_groups()
+                markup_dm = types.InlineKeyboardMarkup()
+                found = False
+
+                for chat_id, info in groups.items():
+                    if is_admin(bot, call.from_user.id, int(chat_id)):
+                        markup_dm.add(
+                            types.InlineKeyboardButton(
+                                f"⚙️ {info['title']}",
+                                callback_data=f"manage_{chat_id}"
+                            )
                         )
-                    )
-                    found = True
+                        found = True
 
-            text = """
-⚙️ <b>Manage Group Settings</b>
+                text = f"""
+⚙️ <b>SETTINGS</b>
 
-👉🏻 Select the group whose settings you want to change.
+🏷 Group: <b>{group_name}</b>
 
-❗ If your group is not listed:
-• Send /reload in the group and try again  
-• Send /settings in the group and then press <b>Open in Pvt</b>
+Select one of the settings that you want to change.
 """
 
-            if not found:
-                safe_edit(call, text + "\n\n❌ No groups found where you are admin.")
-                return
+                if found:
+                    bot.send_message(call.from_user.id, text, reply_markup=markup_dm)
+                else:
+                    bot.send_message(call.from_user.id, "❌ No groups found.")
 
-            safe_edit(call, text, markup)
+            except:
+                bot.send_message(
+                    call.message.chat.id,
+                    "❌ Please start me in private first!"
+                )
 
         elif call.data.startswith("manage_"):
             chat_id = call.data.split("_")[1]
@@ -175,14 +189,13 @@ Stay tuned 🚀
 """
             )
 
-        # ================= PRO GUIDES =================
+        # ================= PRO =================
         elif call.data == "setup_staff":
             safe_edit(call, "⚙️ Staff setup guide (Coming soon)")
 
         elif call.data == "clone":
             safe_edit(call, "🤖 Clone creation guide (Coming soon)")
 
-        # ================= EXTRA =================
         elif call.data == "see_info":
             safe_edit(call, "ℹ️ More info coming soon...")
 
@@ -190,7 +203,7 @@ Stay tuned 🚀
         else:
             safe_edit(call, "Feature coming soon...")
 
-    # ================= GROUP JOIN HANDLER =================
+    # ================= BOT ADDED =================
     @bot.chat_member_handler()
     def bot_added(update):
 
@@ -200,7 +213,6 @@ Stay tuned 🚀
 
             if update.new_chat_member.status in ["administrator", "member"]:
 
-                # ===== First message =====
                 markup1 = types.InlineKeyboardMarkup()
                 markup1.add(
                     types.InlineKeyboardButton(
@@ -216,7 +228,6 @@ Stay tuned 🚀
                     reply_markup=markup1
                 )
 
-                # ===== Second message =====
                 markup2 = types.InlineKeyboardMarkup(row_width=2)
                 markup2.add(
                     types.InlineKeyboardButton("See 👀", callback_data="see_info"),
