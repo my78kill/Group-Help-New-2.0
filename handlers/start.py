@@ -1,5 +1,5 @@
 from telebot import types
-from handlers import help  # Make sure help.py has show_help_menu(bot, call_or_message)
+from handlers import help  # ensure help.py has show_help_menu(bot, message)
 
 def register(bot):
 
@@ -7,11 +7,25 @@ def register(bot):
     def start_cmd(message):
         chat_id = message.chat.id
         user_name = message.from_user.first_name
-        bot_username = bot.get_me().username
 
+        # Check if there is a payload (like start=help)
+        start_payload = message.text.split(maxsplit=1)
+        payload = None
+        if len(start_payload) > 1:
+            payload = start_payload[1]
+
+        # ==================== PRIVATE CHAT ====================
         if message.chat.type == "private":
-            # ===== Private chat /start =====
+            # If start payload is help → open help menu buttons
+            if payload == "help":
+                help.show_help_menu(bot, message)
+                return
+
+            # Normal private start
+            bot_username = bot.get_me().username
             markup = types.InlineKeyboardMarkup(row_width=2)
+
+            # Add buttons
             markup.add(
                 types.InlineKeyboardButton(
                     "➕ Add me to a Group ➕",
@@ -19,7 +33,7 @@ def register(bot):
                 )
             )
             markup.add(
-                types.InlineKeyboardButton("⚙️ Manage Group Settings ✍️", callback_data="settings"),
+                types.InlineKeyboardButton("⚙️ Manage Group Settings ✍️", callback_data="settings")
             )
             markup.add(
                 types.InlineKeyboardButton("👥 Group", callback_data="group"),
@@ -35,27 +49,21 @@ def register(bot):
 
             bot.send_message(
                 chat_id,
-                f"""
-✨ <b>Hey {user_name}!</b>
-
-🤖 <b>I’m your smart Group Assistant</b>
-
-🚀 Add me to your group & promote me as admin  
-🛡️ I’ll help you manage, protect & automate everything  
-
-⚡ Tap <b>/help</b> to explore all features
-""",
+                f"✨ <b>Hey {user_name}!</b>\n\n"
+                "🤖 I’m your smart Group Assistant\n\n"
+                "🚀 Add me to your group & promote me as admin\n"
+                "⚡ Tap <b>/help</b> to explore all features",
                 reply_markup=markup
             )
 
+        # ==================== GROUP CHAT ====================
         else:
-            # ===== Group chat /start =====
+            # Group /start
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
                 types.InlineKeyboardButton("Settings", callback_data="start_settings"),
                 types.InlineKeyboardButton("Bot Commands", callback_data="start_commands")
             )
-
             bot.send_message(
                 chat_id,
                 f"Hello {user_name}!\n\n"
@@ -63,7 +71,7 @@ def register(bot):
                 reply_markup=markup
             )
 
-    # ===== Group /start buttons callback =====
+    # ==================== GROUP /start BUTTONS ====================
     @bot.callback_query_handler(func=lambda call: call.data.startswith("start_"))
     def start_buttons_handler(call):
         bot.answer_callback_query(call.id)
@@ -74,7 +82,7 @@ def register(bot):
             bot.send_message(
                 chat_id,
                 f"📘 <b>Commands Explanation</b>\n\n"
-                f"Click the button below to open the help menu in the bot.",
+                "Click the button below to open the help menu in the bot.",
                 reply_markup=types.InlineKeyboardMarkup().add(
                     types.InlineKeyboardButton(
                         "Open Help Menu 🔹",
@@ -96,7 +104,7 @@ def register(bot):
                 reply_markup=markup
             )
 
-    # ===== Settings choice callback =====
+    # ==================== SETTINGS BUTTON CHOICES ====================
     @bot.callback_query_handler(func=lambda call: call.data.startswith("settings_"))
     def settings_buttons_handler(call):
         bot.answer_callback_query(call.id)
