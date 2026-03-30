@@ -1,10 +1,61 @@
 from telebot import types
 
 
+# ================= MAIN PANEL =================
 def show(bot, call, chat_id, group_name):
-    """Main Settings Panel UI"""
+    """Main Settings Panel UI (for callback)"""
 
-    # ===== BUTTONS =====
+    markup = build_markup()
+
+    text = f"""
+⚙️ <b>SETTINGS</b>
+
+🏷 Group: <b>{group_name}</b>
+
+Select one of the settings that you want to change.
+"""
+
+    # ✅ SAFE EDIT
+    try:
+        bot.edit_message_text(
+            text,
+            call.message.chat.id,
+            call.message.message_id,
+            reply_markup=markup
+        )
+    except:
+        bot.send_message(
+            call.message.chat.id,
+            text,
+            reply_markup=markup
+        )
+
+
+# ================= DIRECT OPEN (DM) =================
+def direct_open(bot, user, chat_id, group_name):
+    """Open settings directly in private chat"""
+
+    markup = build_markup()
+
+    text = f"""
+⚙️ <b>SETTINGS</b>
+
+🏷 Group: <b>{group_name}</b>
+
+Select one of the settings that you want to change.
+"""
+
+    bot.send_message(
+        user.id,
+        text,
+        reply_markup=markup
+    )
+
+
+# ================= BUTTON BUILDER =================
+def build_markup():
+    """Reusable buttons"""
+
     markup = types.InlineKeyboardMarkup(row_width=2)
 
     markup.add(
@@ -32,7 +83,7 @@ def show(bot, call, chat_id, group_name):
         types.InlineKeyboardButton("🔗 Link", callback_data="set_link")
     )
 
-    # Center button
+    # center
     markup.add(
         types.InlineKeyboardButton("📥 Approval Mode", callback_data="set_approval")
     )
@@ -41,32 +92,10 @@ def show(bot, call, chat_id, group_name):
         types.InlineKeyboardButton("🗑 Deleting Messages", callback_data="set_delete")
     )
 
-    # Bottom buttons
+    # bottom
     markup.add(
         types.InlineKeyboardButton("❌ Close", callback_data="close_settings"),
         types.InlineKeyboardButton("▶️ Other", callback_data="set_other")
     )
 
-    # ===== TEXT =====
-    text = f"""
-⚙️ <b>SETTINGS</b>
-
-🏷 Group: <b>{group_name}</b>
-
-Select one of the settings that you want to change.
-"""
-
-    # ===== SAFE EDIT =====
-    try:
-        bot.edit_message_text(
-            text,
-            call.message.chat.id,
-            call.message.message_id,
-            reply_markup=markup
-        )
-    except:
-        bot.send_message(
-            call.message.chat.id,
-            text,
-            reply_markup=markup
-        )
+    return markup
