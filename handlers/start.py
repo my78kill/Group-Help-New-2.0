@@ -1,5 +1,5 @@
 from telebot import types
-from handlers import buttons, help  # make sure help.show_help_menu exists
+from handlers import help  # Make sure help.py has show_help_menu(bot, call_or_message)
 
 def register(bot):
 
@@ -63,17 +63,25 @@ def register(bot):
                 reply_markup=markup
             )
 
-    # ===== Callbacks for group buttons =====
+    # ===== Group /start buttons callback =====
     @bot.callback_query_handler(func=lambda call: call.data.startswith("start_"))
     def start_buttons_handler(call):
         bot.answer_callback_query(call.id)
         chat_id = call.message.chat.id
 
         if call.data == "start_commands":
-            if hasattr(help, "show_help_menu"):
-                help.show_help_menu(bot, call)
-            else:
-                bot.send_message(chat_id, "Help menu is not ready yet.")
+            # Redirect user to bot for help menu
+            bot.send_message(
+                chat_id,
+                f"📘 <b>Commands Explanation</b>\n\n"
+                f"Click the button below to open the help menu in the bot.",
+                reply_markup=types.InlineKeyboardMarkup().add(
+                    types.InlineKeyboardButton(
+                        "Open Help Menu 🔹",
+                        url=f"https://t.me/{bot.get_me().username}?start=help"
+                    )
+                )
+            )
 
         elif call.data == "start_settings":
             markup = types.InlineKeyboardMarkup(row_width=2)
@@ -88,7 +96,7 @@ def register(bot):
                 reply_markup=markup
             )
 
-    # ===== Callbacks for settings choice =====
+    # ===== Settings choice callback =====
     @bot.callback_query_handler(func=lambda call: call.data.startswith("settings_"))
     def settings_buttons_handler(call):
         bot.answer_callback_query(call.id)
